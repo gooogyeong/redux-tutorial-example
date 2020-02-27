@@ -1,44 +1,59 @@
 <!DOCTYPE html>
 <html>
-
-<head>
+  <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.0.1/redux.js"></script>
-</head>
+    <!-- 여기 src의 갑ㅅ으로 들어가 있는 것이 npm install하지 않고 cdn으로 redux를 install? 사용할 수 있게 해줌 -->
+  </head>
 
-<body>
+  <body>
     <style>
-        .container {
-            border: 5px solid black;
-            padding: 1rem;
-            margin-bottom:1rem;
-        }
-        body{
-            margin:1rem;
-        }
+      .container {
+        border: 5px solid black;
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+      body {
+        margin: 1rem;
+      }
     </style>
     <h1>With redux</h1>
     <div id="red"></div>
     <div id="blue"></div>
     <div id="green"></div>
     <script>
-function reducer(state, action){
-    if(state === undefined){
-        return {color:'yellow'}
-    }
-    var newState;
-    if(action.type === 'CHANGE_COLOR'){
-        newState = Object.assign({}, state, {color:action.color});
-    }
-    console.log(action.type, action, state, newState);
-    return newState;
-}
-var store = Redux.createStore(
-    reducer,
-    window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()    
-);
-function red() {
-    var state = store.getState();
-    document.querySelector('#red').innerHTML = `
+      function reducer(state, action) {
+        //Render함수는 처음에 한번 무조건 실행된다.
+        console.log(state); //찍으면 app 실행과 동시에 undefined가 찍힌다.
+        if (state === undefined) {
+          //state가 undefined라는 것은 어떤 action이 아니라 초기화 상태라는 것을 의미.
+          return { color: "yellow" }; //여기서 return되는 객체가 초기 state가ㅂㅅ. 'yellow'말고 'blue'해주면 초기가ㅄ이 파란색이 된다.
+        }
+        //reducer의 첫번쨰 인자는 현재 store의 state.
+        //이때 state를 바로 변경하는것이 아니라 현재 state를 복사해서 이를 변경하고 이 복사본을 Return한다.
+        //그래야 undo, redo가 쉽고 state변화를 추적하기가 쉽다.
+        var newState;
+        if (action.type === "CHANGE_COLOR") {
+          newState = Object.assign({}, state, { color: action.color });
+          //빈 객체(첫번째 인자)에 현재 state(두번째 인자)의 속성을 일단 복사하고 변경된 갑ㅅ(세번째 인자)을 반영한다.
+          //그렇게 하면 Object.assign함수는 복사된 갑ㅅ, 변경된 갑ㅅ이 반영된 첫번째 객체를 리턴한다.
+          //e.g. > Object.assign({}, {name: 'egoing'}, {city: 'seoul'})
+          //     < {name: 'egoing', city: 'seoul'}
+        }
+        console.log(action.type, action, state, newState);
+        return newState;
+        //복제된 갑ㅅ을 return하기 때문에 각각의 함수들이 Return하는 state들은 모두 독립적이다.
+        //action을 반영하는 새로운 state를 return하면 이것이 store의 최종적인 state가 된다.
+      }
+      /* eslint-disable no-underscore-dangle */
+      var store = Redux.createStore(
+        reducer,
+        window.__REDUX_DEVTOOLS_EXTENSION__ &&
+          window.__REDUX_DEVTOOLS_EXTENSION__()
+      );
+      /* eslint-enable */
+      function red() {
+        var state = store.getState();
+        document.querySelector("#red").innerHTML = `
         <div class="container" id="component_red" style="background-color:${state.color}">
             <h1>red</h1>
             <input type="button" value="fire" onclick="
@@ -46,13 +61,19 @@ function red() {
             ">
         </div>
     `;
-}
-store.subscribe(red);
-red();
+      }
+      store.subscribe(red); //이렇게되면 state가 바뀔때마가 Red함수가 호출된다.
+      //youtube 채널 subscribe하면 채널에 새 영상 올라올 때마다 나한테 알림 오는 것처럼
+      //store에 red가 구독신청을 하면 store의 state가 변화할 때마다 red함수한테 알림이 오는 것이다.
+      //그리고 red 함수 내에 작성되어 있는 코드는 (변경된) state에 따라 해당 함수가 어떤 행동을 해야할지에 대한 행동가ㅇ령이다.
+      //위의 경우는 배경색을 state의 color property의 value에 따라 바꾸도록 해 놓았음.
+      //그니까 다음 줄에 오는 코드에서 최초로 red함수 실행 -> 최초에는 배경색 state.color = 'yello'
+      //#red 태그 클릭시 action을 dispatch -> Reducer가 state의 color가ㅄ 변경 -> state 변경 되었으므로 다시 red함수 호출, 이때는 state.color = 'red'이므로 배경색 빨간색.
+      red(); //red함수가 실행되면 id가ㅄ이 red인 tag의 배경색이 state의 color 갑ㅅ으로 지정되는 것.
 
-function blue() {
-    var state = store.getState();
-    document.querySelector('#blue').innerHTML = `
+      function blue() {
+        var state = store.getState();
+        document.querySelector("#blue").innerHTML = `
         <div class="container" id="component_blue" style="background-color:${state.color}">
             <h1>blue</h1>
             <input type="button" value="fire" onclick="
@@ -60,13 +81,13 @@ function blue() {
             ">
         </div>
     `;
-}
-store.subscribe(blue);
-blue();
+      }
+      store.subscribe(blue);
+      blue();
 
-function green() {
-    var state = store.getState();
-    document.querySelector('#green').innerHTML = `
+      function green() {
+        var state = store.getState();
+        document.querySelector("#green").innerHTML = `
         <div class="container" id="component_green" style="background-color:${state.color}">
             <h1>green</h1>
             <input type="button" value="fire" onclick="
@@ -74,11 +95,9 @@ function green() {
             ">
         </div>
     `;
-}
-store.subscribe(green);
-green();
-
+      }
+      store.subscribe(green);
+      green();
     </script>
-</body>
-
+  </body>
 </html>
